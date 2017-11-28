@@ -1,4 +1,4 @@
-ICU_VERSION = "Donrok's Edit for 1.12.1";
+ICU_VERSION = "Shanktank's Edit for 1.12.1";
 ICU_MAX_LINES = 10;
 ICU_CLASSES = {
 	["Warrior"] = { .25, 0, 0, .25; },
@@ -65,6 +65,12 @@ function ICU_Slash(msg)
 				DEFAULT_CHAT_FRAME:AddMessage("ICU: Valid anchors are: top, topright, topleft, bottom, bottomright, bottomleft.", 1, 1, 1);
 			end
 		end
+	elseif string.find(msg, "NOTIFY") then
+		for notify in string.gfind(msg, "NOTIFY (%a+)") do
+			if notify == "RAID" or notify == "PARTY" or notify == "SAY" or notify == "YELL" or notify == "SELF" or notify == "OFF" then
+                ICUvars.notify = notify;
+            end
+        end
 	else
 		DEFAULT_CHAT_FRAME:AddMessage("ICU: Sorrens version. 1.2.1", 1, 1, 1);
 		DEFAULT_CHAT_FRAME:AddMessage("ICU: /icu announce (pr, raid, party, yell, say, self, off)", 1, 1, 1);
@@ -82,6 +88,7 @@ function ICU_OnEvent(event)
 			ICUvars = { };
 			ICUvars.anchor = "BOTTOMRIGHT";
 			ICUvars.announce = "PR";
+            ICUvars.notify = "PARTY";
 		end
 		
 		ICU_SetPoints();
@@ -279,21 +286,26 @@ function ICU2_Process_Trg(trg)
 	-- TODO: BEGIN --
     -- UnitIsPVP()
     -- UnitPVPName()
-	--if UnitExists("target") and UnitName("target") and UnitIsPlayer("target") and myFaction != UnitFactionGroup("target") and not UnitOnTaxi("target") then -- Doubt UnitName check is necessary
-	if UnitExists("target") and UnitIsPlayer("target") and myFaction != UnitFactionGroup("target") and not UnitOnTaxi("target") then
+    if UnitExists("target") and UnitName("target") and UnitIsPlayer("target") and myFaction ~= UnitFactionGroup("target") and not UnitOnTaxi("target") then
         Minimap:PingLocation(ICU_PING_X, ICU_PING_Y);
-        if GetNumPartyMembers() > 0 then
-            SendChatMessage(UnitName("target") .. ": " .. UnitLevel("target") .. " " .. UnitRace("target") .. " " .. UnitClass("target"), "PARTY");
+
+        message = UnitName("target") .. ": " .. UnitLevel("target") .. " " .. UnitRace("target") .. " " .. UnitClass("target");
+        if ICUvars.notify == "SELF" then
+			DEFAULT_CHAT_FRAME:AddMessage(message, 1, 1, 1);
+        elseif ICUvars.notify ~= "OFF" and not ((ICUvars.notify == "PARTY" and GetNumPartyMembers() == 0) or (ICUvars.notify == "RAID" and GetNumRaidMembers() == 0)) then
+            SendChatMessage(message, ICUvars.notify);
         end
+
+        --if ICUvars.notify == "PARTY" and GetNumPartyMembers() > 0 then
+        --    SendChatMessage(message, ICUvars.notify);
+        --elseif ICUvars.notify == "RAID" and GetNumRaidMembers() > 0 then
+        --    SendChatMessage(message, ICUvars.notify);
+        --elseif ICUvars.notify == "SELF" then
+		--	DEFAULT_CHAT_FRAME:AddMessage(message, 1, 1, 1);
+        --elseif ICUvars.notify ~= "OFF" then
+        --    SendChatMessage(message, ICUvars.notify);
+        --end
     end
-	--if UnitExists("target") and UnitName("target") then 
-	--	if UnitRace("target") == "Orc" or UnitRace("target") == "Troll" or UnitRace("target") == "Tauren" or UnitRace("target") == "Undead" then
-	--		Minimap:PingLocation(ICU_PING_X, ICU_PING_Y);
-	--		if GetNumPartyMembers() > 0 then
-	--			SendChatMessage(UnitName("target") .. ": " .. UnitLevel("target") .. " " .. UnitRace("target") .. " " .. UnitClass("target"), "PARTY");
-	--		end
-	--	end
-	--end
 	-- TODO: END --
 	
 	if UnitExists("target") and UnitName("target") then
