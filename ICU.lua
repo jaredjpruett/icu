@@ -1,4 +1,4 @@
-ICU_VERSION = "Shanktank's Edit for 1.12.1";
+ICU_VERSION = "1.3 - Shanktank's Version";
 ICU_MAX_LINES = 10;
 ICU_CLASSES = {
 	["Warrior"] = { .25, 0, 0, .25; },
@@ -14,10 +14,6 @@ ICU_CLASSES = {
 ICU_PING_X = 0;
 ICU_PING_Y = 0;
 local icu_prevtooltip = nil;
-
--- TODO: BEGIN --
-myFaction, locale = UnitFactionGroup("player");
--- TODO: END --
 
 ------------------------------------------------------------------------------
 -- OnFoo() functions
@@ -65,20 +61,30 @@ function ICU_Slash(msg)
 				DEFAULT_CHAT_FRAME:AddMessage("ICU: Valid anchors are: top, topright, topleft, bottom, bottomright, bottomleft.", 1, 1, 1);
 			end
 		end
+    -- TODO: BEGIN
 	elseif string.find(msg, "NOTIFY") then
 		for notify in string.gfind(msg, "NOTIFY (%a+)") do
 			if notify == "RAID" or notify == "PARTY" or notify == "SAY" or notify == "YELL" or notify == "SELF" or notify == "OFF" then
+				DEFAULT_CHAT_FRAME:AddMessage("ICU notify set to: " .. ICUvars.notify, 1, 1, 1);
                 ICUvars.notify = notify;
+            else
+				DEFAULT_CHAT_FRAME:AddMessage("ICU: Invalid notify.", 1, 1, 1);
+				DEFAULT_CHAT_FRAME:AddMessage("ICU: Valid notify are: say, yell, party, raid, self, off", 1, 1, 1);
             end
         end
+    -- TODO: END
 	else
-		DEFAULT_CHAT_FRAME:AddMessage("ICU: Sorrens version. 1.2.1", 1, 1, 1);
+		DEFAULT_CHAT_FRAME:AddMessage("ICU: Shanktank's Version (1.3)", 1, 1, 1);
 		DEFAULT_CHAT_FRAME:AddMessage("ICU: /icu announce (pr, raid, party, yell, say, self, off)", 1, 1, 1);
-		DEFAULT_CHAT_FRAME:AddMessage("ICU: Sets who you will announce to. PR will announce to raid, party or self depending on whether you're in a raid/party or not.", 1, 1, 1);
+		DEFAULT_CHAT_FRAME:AddMessage("ICU:      Sets who you will announce to. PR will announce to raid, party or self depending on whether you're in a raid/party or not.", 1, 1, 1);
+        -- TODO: BEGIN
+		DEFAULT_CHAT_FRAME:AddMessage("ICU: /icu notify (raid, party, yell, say, self, off)", 1, 1, 1);
+		DEFAULT_CHAT_FRAME:AddMessage("ICU:      LOREM IPSUM", 1, 1, 1);
+        -- TODO: END
 		DEFAULT_CHAT_FRAME:AddMessage("ICU: /icu anchor (topleft, topright, top, bottomleft, bottomright, bottom)", 1, 1, 1);
-		DEFAULT_CHAT_FRAME:AddMessage("ICU: Sets where the popup menu will appear in relation to the minimap", 1, 1, 1);
-		DEFAULT_CHAT_FRAME:AddMessage("ICU: Current settings", 1, 1, 1);
-		DEFAULT_CHAT_FRAME:AddMessage("ICU: Announce: " .. ICUvars.announce .. " Anchor: " .. ICUvars.anchor, 1, 1, 1);
+		DEFAULT_CHAT_FRAME:AddMessage("ICU:      Sets where the popup menu will appear in relation to the minimap", 1, 1, 1);
+		DEFAULT_CHAT_FRAME:AddMessage("ICU: Current settings:", 1, 1, 1);
+		DEFAULT_CHAT_FRAME:AddMessage("ICU: Announce: " .. ICUvars.announce .. " - Notify: " .. ICUvars.notify .. " - Anchor: " .. ICUvars.anchor, 1, 1, 1); -- TODO: Modified
 	end
 end
 
@@ -88,7 +94,9 @@ function ICU_OnEvent(event)
 			ICUvars = { };
 			ICUvars.anchor = "BOTTOMRIGHT";
 			ICUvars.announce = "PR";
+            -- TODO: BEGIN
             ICUvars.notify = "PARTY";
+            -- TODO: END
 		end
 		
 		ICU_SetPoints();
@@ -155,6 +163,7 @@ function ICU_ButtonClick()
 		else
 			DEFAULT_CHAT_FRAME:AddMessage("ICU ->  " .. this:GetText() .. ".", 1, 1, 1);
 		end
+
 		ERR_UNIT_NOT_FOUND = lOriginal_ERR_UNIT_NOT_FOUND;
 		ERR_GENERIC_NO_TARGET = lOriginal_ERR_GENERIC_NO_TARGET;
 	end
@@ -286,25 +295,29 @@ function ICU2_Process_Trg(trg)
 	-- TODO: BEGIN --
     -- UnitIsPVP()
     -- UnitPVPName()
-    if UnitExists("target") and UnitName("target") and UnitIsPlayer("target") and myFaction ~= UnitFactionGroup("target") and not UnitOnTaxi("target") then
-        Minimap:PingLocation(ICU_PING_X, ICU_PING_Y);
+	myFaction, myLocale = UnitFactionGroup("player");
+	theirFaction, theirLocale = UnitFactionGroup("target");
 
-        message = UnitName("target") .. ": " .. UnitLevel("target") .. " " .. UnitRace("target") .. " " .. UnitClass("target");
-        if ICUvars.notify == "SELF" then
+    if UnitExists("target") and UnitName("target") and UnitIsPlayer("target") and myFaction ~= theirFaction and not UnitOnTaxi("target") then
+		Minimap:PingLocation(ICU_PING_X, ICU_PING_Y);
+
+        -- Note: insufficient logic
+		message = UnitName("target") .. ": " .. UnitLevel("target") .. " " .. UnitRace("target") .. " " .. UnitClass("target");
+		if ICUvars.notify == "SELF" then
 			DEFAULT_CHAT_FRAME:AddMessage(message, 1, 1, 1);
-        elseif ICUvars.notify ~= "OFF" and not ((ICUvars.notify == "PARTY" and GetNumPartyMembers() == 0) or (ICUvars.notify == "RAID" and GetNumRaidMembers() == 0)) then
-            SendChatMessage(message, ICUvars.notify);
-        end
+		elseif ICUvars.notify ~= "OFF" and not ((ICUvars.notify == "PARTY" and GetNumPartyMembers() == 0) or (ICUvars.notify == "RAID" and GetNumRaidMembers() == 0)) then
+		    SendChatMessage(message, ICUvars.notify);
+		end
 
-        --if ICUvars.notify == "PARTY" and GetNumPartyMembers() > 0 then
-        --    SendChatMessage(message, ICUvars.notify);
-        --elseif ICUvars.notify == "RAID" and GetNumRaidMembers() > 0 then
-        --    SendChatMessage(message, ICUvars.notify);
-        --elseif ICUvars.notify == "SELF" then
+		--if ICUvars.notify == "PARTY" and GetNumPartyMembers() > 0 then
+		--	SendChatMessage(message, ICUvars.notify);
+		--elseif ICUvars.notify == "RAID" and GetNumRaidMembers() > 0 then
+		--	SendChatMessage(message, ICUvars.notify);
+		--elseif ICUvars.notify == "SELF" then
 		--	DEFAULT_CHAT_FRAME:AddMessage(message, 1, 1, 1);
-        --elseif ICUvars.notify ~= "OFF" then
-        --    SendChatMessage(message, ICUvars.notify);
-        --end
+		--elseif ICUvars.notify ~= "OFF" then
+		--	SendChatMessage(message, ICUvars.notify);
+		--end
     end
 	-- TODO: END --
 	

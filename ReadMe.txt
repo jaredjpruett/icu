@@ -19,6 +19,9 @@ Shift-Click on radar to generate a normal ping.
 Version History
 ---------------
 
+Version 1.3 (15 Sep 2013)
+- asdf
+
 Version 1.2 (10 Feb 2005)
 - Added ReadMe.txt
 - Added health percentage to player targets in dialog display.
