@@ -41,6 +41,11 @@ function ICU_Slash(msg)
     msg = string.upper(msg);
     
     if string.find(msg, "ANNOUNCE") then
+        local _, count = string.gsub(msg, "ANNOUNCE (%a+)", "")
+        if count == 0 then
+            DEFAULT_CHAT_FRAME:AddMessage("ICU: announce is currently set to: " .. ICUvars.announce, 1, 1, 1);
+            DEFAULT_CHAT_FRAME:AddMessage("Usage: /icu announce [say|yell|party|raid|self|off]", 1, 1, 1);
+        end
         for announce in string.gfind(msg, "ANNOUNCE (%a+)") do
             if announce == "RAID" or announce == "PARTY" or announce == "SAY" or announce == "YELL" or announce == "SELF" or announce == "OFF" or announce == "PR" then
                 ICUvars.announce = announce;
@@ -51,6 +56,11 @@ function ICU_Slash(msg)
             end
         end
     elseif string.find(msg, "ANCHOR") then
+        local _, count = string.gsub(msg, "ANCHOR (%a+)", "")
+        if count == 0 then
+            DEFAULT_CHAT_FRAME:AddMessage("ICU: anchor is currently set to: " .. ICUvars.anchor, 1, 1, 1);
+            DEFAULT_CHAT_FRAME:AddMessage("Usage: /icu anchor [top|topright|topleft|bottom|bottomright|bottomleft]", 1, 1, 1);
+        end
         for anchor in string.gfind(msg, "ANCHOR (%a+)") do
             if anchor == "TOP" or anchor == "TOPLEFT" or anchor == "TOPRIGHT" or anchor == "BOTTOM" or anchor == "BOTTOMRIGHT" or anchor == "BOTTOMLEFT" or anchor == "RIGHT" or anchor == "LEFT" then
                 ICUvars.anchor = anchor;
@@ -61,7 +71,6 @@ function ICU_Slash(msg)
                 DEFAULT_CHAT_FRAME:AddMessage("ICU: Valid anchors are: top, topright, topleft, bottom, bottomright, bottomleft.", 1, 1, 1);
             end
         end
-    -- TODO: BEGIN
     elseif string.find(msg, "ALERT") then
         local _, count = string.gsub(msg, "ALERT (%a+)", "")
         if count == 0 then
@@ -77,19 +86,16 @@ function ICU_Slash(msg)
                 DEFAULT_CHAT_FRAME:AddMessage("ICU: Valid alerts are: pr, say, yell, party, raid, self, off", 1, 1, 1);
             end
         end
-    -- TODO: END
     else
         DEFAULT_CHAT_FRAME:AddMessage("ICU: Shanktank's Version (1.3)", 1, 1, 1);
         --DEFAULT_CHAT_FRAME:AddMessage("ICU: /icu announce [pr|raid|party|yell|say|self|off]", 1, 1, 1);
         --DEFAULT_CHAT_FRAME:AddMessage("ICU:      Sets who you will announce to. PR will announce to raid, party or self depending on whether you're in a raid/party or not.", 1, 1, 1);
-        -- TODO: BEGIN
         --DEFAULT_CHAT_FRAME:AddMessage("ICU: /icu alert [pr|raid|party|yell|say|self|off]", 1, 1, 1);
         --DEFAULT_CHAT_FRAME:AddMessage("ICU:      LOREM IPSUM", 1, 1, 1);
-        -- TODO: END
         --DEFAULT_CHAT_FRAME:AddMessage("ICU: /icu anchor (topleft, topright, top, bottomleft, bottomright, bottom)", 1, 1, 1);
         --DEFAULT_CHAT_FRAME:AddMessage("ICU:      Sets where the popup menu will appear in relation to the minimap", 1, 1, 1);
         --DEFAULT_CHAT_FRAME:AddMessage("ICU: Current settings:", 1, 1, 1);
-        --DEFAULT_CHAT_FRAME:AddMessage("ICU: Announce: " .. ICUvars.announce .. " - Alert: " .. ICUvars.alert .. " - Anchor: " .. ICUvars.anchor, 1, 1, 1); -- TODO: Modified
+        --DEFAULT_CHAT_FRAME:AddMessage("ICU: Announce: " .. ICUvars.announce .. " - Alert: " .. ICUvars.alert .. " - Anchor: " .. ICUvars.anchor, 1, 1, 1);
         DEFAULT_CHAT_FRAME:AddMessage("Commands: announce, alert, anchor", 1, 1, 1)
     end
 end
@@ -100,9 +106,7 @@ function ICU_OnEvent(event)
             ICUvars = { };
             ICUvars.anchor = "BOTTOMRIGHT";
             ICUvars.announce = "PR";
-            -- TODO: BEGIN
             ICUvars.alert = "PR";
-            -- TODO: END
         end
         
         ICU_SetPoints();
@@ -310,12 +314,14 @@ function ICU2_Process_Trg(trg)
                 Minimap:PingLocation(ICU_PING_X, ICU_PING_Y);
 
                 message = UnitName("target") .. ": " .. UnitLevel("target") .. " " .. UnitRace("target") .. " " .. UnitClass("target");
-
                 if ICUvars.alert == "PR" then
-                    if not (ICUvars.alert == "PARTY" and GetNumPartyMembers() == 0) or (ICUvars.alert == "RAID" and GetNumRaidMembers() == 0) then
-                        SendChatMessage(message, ICUvars.alert);
+                    --if not (ICUvars.alert == "PARTY" and GetNumPartyMembers() == 0) or (ICUvars.alert == "RAID" and GetNumRaidMembers() == 0) then -- doesn't seem right
+                    if GetNumRaidMembers() > 0 then
+                        SendChatMessage(message, "RAID");
+                    elseif GetNumPartyMembers() > 0 then
+                        SendChatMessage(message, "PARTY");
                     else
-                        DEFAULT_CHAT_FRAME:AddMessage("ICU ->  " .. this:GetText() .. ".", 1, 1, 1);
+                        DEFAULT_CHAT_FRAME:AddMessage(message, 1, 1, 1);
                     end
                 elseif ICUvars.alert == "SELF" then
                     DEFAULT_CHAT_FRAME:AddMessage(message, 1, 1, 1);
