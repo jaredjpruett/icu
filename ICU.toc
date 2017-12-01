@@ -1,7 +1,0 @@
-## Interface: 11200
-## Title: ICU (I See You)
-## OptionalDeps: MapNotes
-## Author: Jebji, Dwarf Hunter, Blackrock, MMC Guild, sul_phure@hotmail.com; Jan 2005 modded by Sorren of Bleeding Hollow; Sep 2013 modded by Shanktank.
-## Notes: An Addon for World of Warcraft's Hunter class, allowing blips on tracking radar to be identified and/or targetted.
-## SavedVariables: ICUvars
-ICU.xml
