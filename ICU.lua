@@ -44,7 +44,7 @@ function ICU_Slash(msg)
         local _, count = string.gsub(msg, "ANNOUNCE (%a+)", "")
         if count == 0 then
             DEFAULT_CHAT_FRAME:AddMessage("ICU: announce is currently set to: " .. ICUvars.announce, 1, 1, 1);
-            DEFAULT_CHAT_FRAME:AddMessage("Usage: /icu announce [say|yell|party|raid|self|off]", 1, 1, 1);
+            DEFAULT_CHAT_FRAME:AddMessage("Usage: /icu announce [ say | yell | party | raid | self | off ]", 1, 1, 1);
         end
         for announce in string.gfind(msg, "ANNOUNCE (%a+)") do
             if announce == "RAID" or announce == "PARTY" or announce == "SAY" or announce == "YELL" or announce == "SELF" or announce == "OFF" or announce == "PR" then
@@ -59,7 +59,7 @@ function ICU_Slash(msg)
         local _, count = string.gsub(msg, "ANCHOR (%a+)", "")
         if count == 0 then
             DEFAULT_CHAT_FRAME:AddMessage("ICU: anchor is currently set to: " .. ICUvars.anchor, 1, 1, 1);
-            DEFAULT_CHAT_FRAME:AddMessage("Usage: /icu anchor [top|topright|topleft|bottom|bottomright|bottomleft]", 1, 1, 1);
+            DEFAULT_CHAT_FRAME:AddMessage("Usage: /icu anchor [ top | topright | topleft | bottom | bottomright | bottomleft ]", 1, 1, 1);
         end
         for anchor in string.gfind(msg, "ANCHOR (%a+)") do
             if anchor == "TOP" or anchor == "TOPLEFT" or anchor == "TOPRIGHT" or anchor == "BOTTOM" or anchor == "BOTTOMRIGHT" or anchor == "BOTTOMLEFT" or anchor == "RIGHT" or anchor == "LEFT" then
@@ -75,10 +75,10 @@ function ICU_Slash(msg)
         local _, count = string.gsub(msg, "ALERT (%a+)", "")
         if count == 0 then
             DEFAULT_CHAT_FRAME:AddMessage("ICU: alert is currently set to: " .. ICUvars.alert, 1, 1, 1);
-            DEFAULT_CHAT_FRAME:AddMessage("Usage: /icu alert [say|yell|party|raid|self|off]", 1, 1, 1);
+            DEFAULT_CHAT_FRAME:AddMessage("Usage: /icu alert [ say | yell | party | raid | self | off ]", 1, 1, 1);
         end
         for alert in string.gfind(msg, "ALERT (%a+)") do
-            if alert == "RAID" or alert == "PARTY" or alert == "SAY" or alert == "YELL" or alert == "SELF" or alert == "OFF" then
+            if alert == "PR" or alert == "RAID" or alert == "PARTY" or alert == "SAY" or alert == "YELL" or alert == "SELF" or alert == "OFF" then
                 ICUvars.alert = alert;
                 DEFAULT_CHAT_FRAME:AddMessage("ICU alert set to: " .. ICUvars.alert, 1, 1, 1);
             else
