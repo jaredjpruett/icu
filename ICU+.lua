@@ -1,5 +1,7 @@
 ICU_VERSION = "1.3 - Shanktank's Version";
+
 ICU_MAX_LINES = 10;
+
 ICU_CLASSES = {
     ["Warrior"] = { .25,   0,   0, .25; },
     ["Mage"]    = {  .5, .25,   0, .25; },
@@ -11,9 +13,64 @@ ICU_CLASSES = {
     ["Warlock"] = {   1, .75, .25,  .5; },
     ["Paladin"] = { .25,   0,  .5, .75; }
 };
+
+ICU_COMMANDS = {
+	"ALERT",
+	"ANNOUNCE",
+	"ANCHOR"
+};
+ICU_DESCRIPTIONS = { };
+ICU_DESCRIPTIONS["ALERT"] = "ALERT will immediately ping and add a message in the specified chat when you click the blip of a player of the opposite faction on the minimap";
+ICU_DESCRIPTIONS["ANNOUNCE"] = "ANNOUNCE will add a message in the specified chat when you click an entry in the popup frame";
+ICU_DESCRIPTIONS["ANCHOR"] = "ANCHOR sets the location of the frame that pops up when you click a blip on the minimap";
+ICU_OPTIONS = { };
+ICU_OPTIONS["ALERT"]	= "AUTO, SAY, YELL, PARTY, RAID, SELF, OFF";
+ICU_OPTIONS["ANNOUNCE"]	= "AUTO, SAY, YELL, PARTY, RAID, SELF, OFF";
+ICU_OPTIONS["ANCHOR"]	= "TOP, TOPLEFT, TOPRIGHT, BOTTOM, BOTTOMLEFT, BOTTOMRIGHT, LEFT, RIGHT";
+
 ICU_PING_X = 0;
 ICU_PING_Y = 0;
+
 local icu_prevtooltip = nil;
+
+------------------------------------------------------------------------------
+-- Auxiliary functions
+------------------------------------------------------------------------------
+
+function print(msg)
+	DEFAULT_CHAT_FRAME:AddMessage(msg, 1, 1, 1);
+end
+
+function isValidCommand(cmd)
+	for index, value in ipairs(ICU_COMMANDS) do
+		if cmd == value then
+			return true;
+		end
+	end
+	return false;
+end
+
+function parseCommand(str)
+    local len = string.len(str);
+
+	local cmd = "";
+	local opt = "";
+
+    local i = 1;
+    while i < len + 1 and string.sub(str, i, i) ~= " " do
+        cmd = cmd .. string.sub(str, i, i);
+        i = i + 1;
+    end
+    while i < len + 1 and string.sub(str, i, i) == " " do
+        i = i + 1;
+    end
+    while i < len + 1 and string.sub(str, i, i) ~= " " do
+        opt = opt .. string.sub(str, i, i);
+        i = i + 1;
+    end
+
+    return cmd, opt;
+end
 
 ------------------------------------------------------------------------------
 -- OnFoo() functions
@@ -26,7 +83,7 @@ function ICU_OnLoad()
     Minimap_OnClick = ICU_Minimap_OnClick_Event;
     
     --if DEFAULT_CHAT_FRAME then
-        --DEFAULT_CHAT_FRAME:AddMessage("ICU " .. ICU_VERSION .. " AddOn loaded");
+        --print("ICU " .. ICU_VERSION .. " AddOn loaded");
     --end
     
     SlashCmdList["ICU"] = function(msg)
@@ -34,63 +91,37 @@ function ICU_OnLoad()
     end
     
     SLASH_ICU1 = "/icu";
-    SLASH_ICU2 = "/ICU";    
+	SLASH_ICU2 = "/icu+";
+	SLASH_ICU3 = "/icui";
+	SLASH_ICU3 = "/icup";
 end
 
-function ICU_Slash(msg)
-    msg = string.upper(msg);
-    if string.find(msg, "ANNOUNCE") then
-        local _, count = string.gsub(msg, "ANNOUNCE (%a+)", "")
-        if count == 0 then
-            DEFAULT_CHAT_FRAME:AddMessage("ICU: Announce will add a message in the specified chat when a target in the popup frame is clicked.", 1, 1, 1);
-            DEFAULT_CHAT_FRAME:AddMessage("ICU: Announce is currently set to " .. ICUvars.announce .. ".", 1, 1, 1);
-            DEFAULT_CHAT_FRAME:AddMessage("ICU: Valid announce values: auto, say, yell, party, raid, self, off", 1, 1, 1);
-        end
-        for announce in string.gfind(msg, "ANNOUNCE (%a+)") do
-            if announce == "RAID" or announce == "PARTY" or announce == "SAY" or announce == "YELL" or announce == "SELF" or announce == "OFF" or announce == "AUTO" then
-                ICUvars.announce = announce;
-                DEFAULT_CHAT_FRAME:AddMessage("ICU: Announce has been set to " .. ICUvars.announce .. ".", 1, 1, 1);
-            else
-                DEFAULT_CHAT_FRAME:AddMessage("ICU: Invalid announce value.", 1, 1, 1);
-                DEFAULT_CHAT_FRAME:AddMessage("ICU: Valid announce values: auto, say, yell, party, raid, self, off", 1, 1, 1);
-            end
-        end
-    elseif string.find(msg, "ALERT") then
-        local _, count = string.gsub(msg, "ALERT (%a+)", "")
-        if count == 0 then
-            DEFAULT_CHAT_FRAME:AddMessage("ICU: Alert will immediately ping and add a message in the specified chat when a player of the enemy faction's blip is clicked on the minimap.", 1, 1, 1);
-            DEFAULT_CHAT_FRAME:AddMessage("ICU: Alert is currently set to " .. ICUvars.alert .. ".", 1, 1, 1);
-            DEFAULT_CHAT_FRAME:AddMessage("ICU: Valid alert values: auto, say, yell, party, raid, self, off", 1, 1, 1);
-        end
-        for alert in string.gfind(msg, "ALERT (%a+)") do
-            if alert == "RAID" or alert == "PARTY" or alert == "SAY" or alert == "YELL" or alert == "SELF" or alert == "OFF" or alert == "AUTO" then
-                ICUvars.alert = alert;
-                DEFAULT_CHAT_FRAME:AddMessage("ICU: Alert has been set to " .. ICUvars.alert .. ".", 1, 1, 1);
-            else
-                DEFAULT_CHAT_FRAME:AddMessage("ICU: Invalid alert value.", 1, 1, 1);
-                DEFAULT_CHAT_FRAME:AddMessage("ICU: Valid alerts are: auto, say, yell, party, raid, self, off", 1, 1, 1);
-            end
-        end
-    elseif string.find(msg, "ANCHOR") then
-        local _, count = string.gsub(msg, "ANCHOR (%a+)", "");
-        if count == 0 then
-            DEFAULT_CHAT_FRAME:AddMessage("ICU: Anchor sets the location of the frame that pops up when you click a blip on the minimap.", 1, 1, 1);
-            DEFAULT_CHAT_FRAME:AddMessage("ICU: Anchor is currently set to " .. ICUvars.anchor .. ".", 1, 1, 1);
-            DEFAULT_CHAT_FRAME:AddMessage("ICU: Valid anchor values: top, topright, topleft, bottom, bottomright, bottomleft", 1, 1, 1);
-        end
-        for anchor in string.gfind(msg, "ANCHOR (%a+)") do
-            if anchor == "TOP" or anchor == "TOPLEFT" or anchor == "TOPRIGHT" or anchor == "BOTTOM" or anchor == "BOTTOMRIGHT" or anchor == "BOTTOMLEFT" or anchor == "RIGHT" or anchor == "LEFT" then
-                ICUvars.anchor = anchor;
-                ICU_SetPoints();
-                DEFAULT_CHAT_FRAME:AddMessage("ICU: Anchor has been set to " .. ICUvars.anchor .. ".", 1, 1, 1);
-            else
-                DEFAULT_CHAT_FRAME:AddMessage("ICU: Invalid anchor value.", 1, 1, 1);
-                DEFAULT_CHAT_FRAME:AddMessage("ICU: Valid anchor values: top, topright, topleft, bottom, bottomright, bottomleft", 1, 1, 1);
-            end
-        end
-    else
-        DEFAULT_CHAT_FRAME:AddMessage("ICU: Shanktank's Version (1.3). Commands: announce, alert, anchor", 1, 1, 1);
-    end
+function ICU_Slash(str)
+	local cmd, opt = parseCommand(string.upper(str));
+	local valid = false;
+
+	if cmd == "" or cmd == nil then
+		print("ICU 1.3: Shanktank's Version. Commands: alert, announce, anchor"); -- TODO: print stringified ICU_COMMANDS
+	elseif not isValidCommand(cmd) then
+		print("ICU: Invalid command. Commands: alert, announce, anchor"); -- TODO: print stringified ICU_COMMANDS
+	elseif opt == "" or opt == nil then
+		print("ICU: "  .. cmd .. " is current set to " .. ICUvars2[cmd] .. ". " .. ICU_DESCRIPTIONS[cmd] .. ". Valid values are " .. ICU_OPTIONS[cmd] .. ".");
+	else
+		if cmd == "ALERT" or cmd == "ANNOUNCE" then
+			valid = opt == "RAID" or opt == "PARTY" or opt == "SAY" or opt == "YELL" or opt == "SELF" or opt == "OFF" or opt == "AUTO"; -- TODO: create array of valid options, check using array
+		elseif cmd == "ANCHOR" then
+			valid = opt == "TOP" or opt == "TOPLEFT" or opt == "TOPRIGHT" or opt == "BOTTOM" or opt == "BOTTOMRIGHT" or opt == "BOTTOMLEFT" or opt == "LEFT" or opt == "RIGHT";  -- TODO: create array of valid options, check using array
+		end
+		if valid then
+			ICUvars2[cmd] = opt;
+			print("ICU: " .. cmd .. " has been set to " .. ICUvars2[cmd] .. ".");
+			if cmd == "ANCHOR" then
+				ICU_SetPoints();
+			end
+		else
+			print("ICU: Invalid " .. cmd .. " value. Valid " .. cmd .. " values are: " .. ICU_OPTIONS[cmd]);
+		end
+	end
 end
 
 function ICU_OnEvent(event)
@@ -100,6 +131,13 @@ function ICU_OnEvent(event)
             ICUvars.anchor = "BOTTOMRIGHT";
             ICUvars.announce = "AUTO";
             ICUvars.alert = "AUTO";
+        end
+
+		if not ICUvars2 then
+            ICUvars2 = { };
+            ICUvars2["ANCHOR"] = "BOTTOMRIGHT";
+            ICUvars2["ANNOUNCE"] = "AUTO";
+            ICUvars2["ALERT"] = "AUTO";
         end
         
         ICU_SetPoints();
@@ -157,14 +195,14 @@ function ICU_ButtonClick()
                     elseif GetNumPartyMembers() > 0 then
                         SendChatMessage("ICU -> " .. this:GetText() .. ".", "PARTY");
                     else
-                        DEFAULT_CHAT_FRAME:AddMessage("ICU ->  " .. this:GetText() .. ".", 1, 1, 1);
+                        print("ICU ->  " .. this:GetText() .. ".");
                     end
                 end
             elseif ICUvars.announce == "SELF" then
-                DEFAULT_CHAT_FRAME:AddMessage("ICU ->  " .. this:GetText() .. ".", 1, 1, 1);
+                print("ICU ->  " .. this:GetText() .. ".");
             end
         else
-            DEFAULT_CHAT_FRAME:AddMessage("ICU ->  " .. this:GetText() .. ".", 1, 1, 1);
+            print("ICU ->  " .. this:GetText() .. ".");
         end
 
         ERR_UNIT_NOT_FOUND = lOriginal_ERR_UNIT_NOT_FOUND;
@@ -306,20 +344,26 @@ function ICU2_Process_Trg(trg)
             if myFaction ~= theirFaction and not UnitOnTaxi("target") then
                 Minimap:PingLocation(ICU_PING_X, ICU_PING_Y);
 
-                message = UnitName("target") .. ": " .. UnitLevel("target") .. " " .. UnitRace("target") .. " " .. UnitClass("target");
-                if ICUvars.alert == "AUTO" then
-                    --if not (ICUvars.alert == "PARTY" and GetNumPartyMembers() == 0) or (ICUvars.alert == "RAID" and GetNumRaidMembers() == 0) then -- doesn't seem right
+				local flagged = UnitIsPVP("target");
+
+                message = UnitPVPName("target") .. ": " .. UnitLevel("target") .. " " .. UnitRace("target") .. " " .. UnitClass("target");
+				if flagged then
+					message = message .. " (FLAGGED)";
+				else
+					message = message .. " (UNFLAGGED)";
+				end
+                if ICUvars2["ALERT"] == "AUTO" then
                     if GetNumRaidMembers() > 0 then
                         SendChatMessage(message, "RAID");
                     elseif GetNumPartyMembers() > 0 then
                         SendChatMessage(message, "PARTY");
                     else
-                        DEFAULT_CHAT_FRAME:AddMessage(message, 1, 1, 1);
+                        print(message);
                     end
-                elseif ICUvars.alert == "SELF" then
-                    DEFAULT_CHAT_FRAME:AddMessage(message, 1, 1, 1);
-                elseif ICUvars.alert ~= "OFF" and not ((ICUvars.alert == "PARTY" and GetNumPartyMembers() == 0) or (ICUvars.alert == "RAID" and GetNumRaidMembers() == 0)) then
-                    SendChatMessage(message, ICUvars.alert);
+                elseif ICUvars2["ALERT"] == "SELF" then
+                    print(message);
+                elseif ICUvars2["ALERT"] ~= "OFF" and not ((ICUvars2["ALERT"] == "PARTY" and GetNumPartyMembers() == 0) or (ICUvars2["ALERT"] == "RAID" and GetNumRaidMembers() == 0)) then
+                    SendChatMessage(message, ICUvars2["ALERT"]);
                 end
             end
             -- TODO: END --
