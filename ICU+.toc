@@ -3,5 +3,5 @@
 ## OptionalDeps: MapNotes
 ## Author: Jebji, Dwarf Hunter, Blackrock, MMC Guild, sul_phure@hotmail.com; Jan 2005 modded by Sorren of Bleeding Hollow; Sep 2013 modded by Shanktank; Jan 2017 updated by Shanktank.
 ## Notes: An Addon for World of Warcraft's Hunter class, allowing blips on the minimap to be identified and/or targetted, and quick targeting and notification of enemy players.
-## SavedVariables: ICUvars, ICUvars2
+## SavedVariables: ICUvars
 ICU+.xml

@@ -14,19 +14,16 @@ ICU_CLASSES = {
     ["Paladin"] = { .25,   0,  .5, .75; }
 };
 
-ICU_COMMANDS = {
-	"ALERT",
-	"ANNOUNCE",
-	"ANCHOR"
+ICU_DESCRIPTIONS = {
+    ["ALERT"]    = "ALERT will immediately ping and add a message in the specified chat when you click the blip of a player of the opposite faction on the minimap",
+    ["ANNOUNCE"] = "ANNOUNCE will add a message in the specified chat when you click an entry in the popup frame",
+    ["ANCHOR"]   = "ANCHOR sets the location of the frame that pops up when you click a blip on the minimap"
 };
-ICU_DESCRIPTIONS = { };
-ICU_DESCRIPTIONS["ALERT"] = "ALERT will immediately ping and add a message in the specified chat when you click the blip of a player of the opposite faction on the minimap";
-ICU_DESCRIPTIONS["ANNOUNCE"] = "ANNOUNCE will add a message in the specified chat when you click an entry in the popup frame";
-ICU_DESCRIPTIONS["ANCHOR"] = "ANCHOR sets the location of the frame that pops up when you click a blip on the minimap";
-ICU_OPTIONS = { };
-ICU_OPTIONS["ALERT"]	= "AUTO, SAY, YELL, PARTY, RAID, SELF, OFF";
-ICU_OPTIONS["ANNOUNCE"]	= "AUTO, SAY, YELL, PARTY, RAID, SELF, OFF";
-ICU_OPTIONS["ANCHOR"]	= "TOP, TOPLEFT, TOPRIGHT, BOTTOM, BOTTOMLEFT, BOTTOMRIGHT, LEFT, RIGHT";
+ICU_OPTIONS = {
+    ["ALERT"]    = { "AUTO", "SAY", "YELL", "PARTY", "RAID", "SELF", "OFF"; },
+    ["ANNOUNCE"] = { "AUTO", "SAY", "YELL", "PARTY", "RAID", "SELF", "OFF"; },
+    ["ANCHOR"]   = { "TOP", "TOPLEFT", "TOPRIGHT", "BOTTOM", "BOTTOMLEFT", "BOTTOMRIGHT", "LEFT", "RIGHT"; }
+};
 
 ICU_PING_X = 0;
 ICU_PING_Y = 0;
@@ -37,20 +34,12 @@ local icu_prevtooltip = nil;
 -- Auxiliary functions
 ------------------------------------------------------------------------------
 
-function print(msg)
+function ICU_Print(msg)
 	DEFAULT_CHAT_FRAME:AddMessage(msg, 1, 1, 1);
 end
 
-function isValidCommand(cmd)
-	for index, value in ipairs(ICU_COMMANDS) do
-		if cmd == value then
-			return true;
-		end
-	end
-	return false;
-end
-
-function parseCommand(str)
+function ICU_ParseCommand(str) -- ToDO: Do NOT let this function see the light of day
+	local str = string.upper(str);
     local len = string.len(str);
 
 	local cmd = "";
@@ -72,6 +61,23 @@ function parseCommand(str)
     return cmd, opt;
 end
 
+function ICU_StringifyKeys(tab)
+	local str = "";
+	for key, _ in pairs(tab) do
+		str = str .. key .. ", ";
+	end
+	return string.sub(str, 1, -3);
+end
+
+function ICU_TableHasValue(tab, val)
+    for _, v in ipairs(tab) do -- ToDO: pairs instead of ipairs?
+        if val == v then
+            return true;
+        end
+    end
+    return false;
+end
+
 ------------------------------------------------------------------------------
 -- OnFoo() functions
 ------------------------------------------------------------------------------
@@ -83,7 +89,7 @@ function ICU_OnLoad()
     Minimap_OnClick = ICU_Minimap_OnClick_Event;
     
     --if DEFAULT_CHAT_FRAME then
-        --print("ICU " .. ICU_VERSION .. " AddOn loaded");
+        --ICU_Print("ICU " .. ICU_VERSION .. " AddOn loaded");
     --end
     
     SlashCmdList["ICU"] = function(msg)
@@ -97,47 +103,33 @@ function ICU_OnLoad()
 end
 
 function ICU_Slash(str)
-	local cmd, opt = parseCommand(string.upper(str));
-	local valid = false;
-
-	if cmd == "" or cmd == nil then
-		print("ICU 1.3: Shanktank's Version. Commands: alert, announce, anchor"); -- TODO: print stringified ICU_COMMANDS
-	elseif not isValidCommand(cmd) then
-		print("ICU: Invalid command. Commands: alert, announce, anchor"); -- TODO: print stringified ICU_COMMANDS
-	elseif opt == "" or opt == nil then
-		print("ICU: "  .. cmd .. " is current set to " .. ICUvars2[cmd] .. ". " .. ICU_DESCRIPTIONS[cmd] .. ". Valid values are " .. ICU_OPTIONS[cmd] .. ".");
+	local cmd, opt = ICU_ParseCommand(str);
+	if cmd == "" then
+		ICU_Print("ICU 1.3: Shanktank's Version. Commands: " .. string.lower(ICU_StringifyKeys(ICU_OPTIONS)));
+    elseif ICU_OPTIONS[cmd] == nil then
+		ICU_Print("ICU: Invalid command. Commands: " .. string.lower(ICU_StringifyKeys(ICU_OPTIONS)));
+	elseif opt == "" then
+		ICU_Print("ICU: "  .. cmd .. " is currently set to " .. ICUvars[cmd] .. ". " .. ICU_DESCRIPTIONS[cmd] .. ". Valid values are " .. table.concat(ICU_OPTIONS[cmd], ", ") .. "."); -- ToDO: cache/precalc concat or always do on the fly?
 	else
-		if cmd == "ALERT" or cmd == "ANNOUNCE" then
-			valid = opt == "RAID" or opt == "PARTY" or opt == "SAY" or opt == "YELL" or opt == "SELF" or opt == "OFF" or opt == "AUTO"; -- TODO: create array of valid options, check using array
-		elseif cmd == "ANCHOR" then
-			valid = opt == "TOP" or opt == "TOPLEFT" or opt == "TOPRIGHT" or opt == "BOTTOM" or opt == "BOTTOMRIGHT" or opt == "BOTTOMLEFT" or opt == "LEFT" or opt == "RIGHT";  -- TODO: create array of valid options, check using array
-		end
-		if valid then
-			ICUvars2[cmd] = opt;
-			print("ICU: " .. cmd .. " has been set to " .. ICUvars2[cmd] .. ".");
+        if ICU_TableHasValue(ICU_OPTIONS[cmd], opt) then
+			ICUvars[cmd] = opt;
+			ICU_Print("ICU: " .. cmd .. " has been set to " .. ICUvars[cmd] .. ".");
 			if cmd == "ANCHOR" then
 				ICU_SetPoints();
 			end
 		else
-			print("ICU: Invalid " .. cmd .. " value. Valid " .. cmd .. " values are: " .. ICU_OPTIONS[cmd]);
+			ICU_Print("ICU: Invalid " .. cmd .. " value. Valid " .. cmd .. " values are: " .. table.concat(ICU_OPTIONS[cmd], ", ") .. ".");
 		end
 	end
 end
 
 function ICU_OnEvent(event)
     if event == "VARIABLES_LOADED" then
-        if not ICUvars then
+		if not ICUvars then
             ICUvars = { };
-            ICUvars.anchor = "BOTTOMRIGHT";
-            ICUvars.announce = "AUTO";
-            ICUvars.alert = "AUTO";
-        end
-
-		if not ICUvars2 then
-            ICUvars2 = { };
-            ICUvars2["ANCHOR"] = "BOTTOMRIGHT";
-            ICUvars2["ANNOUNCE"] = "AUTO";
-            ICUvars2["ALERT"] = "AUTO";
+            ICUvars["ALERT"]    = "AUTO";
+            ICUvars["ANNOUNCE"] = "AUTO";
+            ICUvars["ANCHOR"]   = "BOTTOMRIGHT";
         end
         
         ICU_SetPoints();
@@ -147,21 +139,21 @@ end
 function ICU_SetPoints()
     ICU_Popup:ClearAllPoints();
     
-    if ICUvars.anchor == "BOTTOMRIGHT" then
+    if ICUvars["ANCHOR"] == "BOTTOMRIGHT" then
         ICU_Popup:SetPoint("TOPRIGHT", "MinimapCluster", "BOTTOMRIGHT", 0, 0);
-    elseif ICUvars.anchor == "TOPRIGHT" then
+    elseif ICUvars["ANCHOR"] == "TOPRIGHT" then
         ICU_Popup:SetPoint("BOTTOMRIGHT", "MinimapCluster", "TOPRIGHT", 0, 0);
-    elseif ICUvars.anchor == "BOTTOM" then
+    elseif ICUvars["ANCHOR"] == "BOTTOM" then
         ICU_Popup:SetPoint("TOP", "MinimapCluster", "BOTTOM", 0, 0);
-    elseif ICUvars.anchor == "TOP" then
+    elseif ICUvars["ANCHOR"] == "TOP" then
         ICU_Popup:SetPoint("BOTTOM", "MinimapCluster", "TOP", 0, 0);
-    elseif ICUvars.anchor == "BOTTOMLEFT" then
+    elseif ICUvars["ANCHOR"] == "BOTTOMLEFT" then
         ICU_Popup:SetPoint("TOPLEFT", "MinimapCluster", "BOTTOMLEFT", 0, 0);
-    elseif ICUvars.anchor == "TOPLEFT" then
+    elseif ICUvars["ANCHOR"] == "TOPLEFT" then
         ICU_Popup:SetPoint("BOTTOMLEFT", "MinimapCluster", "TOPLEFT", 0, 0);
-    elseif ICUvars.anchor == "RIGHT" then
+    elseif ICUvars["ANCHOR"] == "RIGHT" then
         ICU_Popup:SetPoint("RIGHT", "MinimapCluster", "LEFT", 0, 0);
-    elseif ICUvars.anchor == "LEFT" then
+    elseif ICUvars["ANCHOR"] == "LEFT" then
         ICU_Popup:SetPoint("LEFT", "MinimapCluster", "RIGHT", 0, 0);
     end
 end
@@ -186,23 +178,23 @@ function ICU_ButtonClick()
         end
         
         if not IsControlKeyDown() then 
-            if ICUvars.announce ~= "SELF" and ICUvars.announce ~= "OFF" then
-                if ICUvars.announce ~= "AUTO" then
-                    SendChatMessage("ICU -> " .. this:GetText() .. ".", ICUvars.announce);
+            if ICUvars["ANNOUNCE"] ~= "SELF" and ICUvars["ANNOUNCE"] ~= "OFF" then
+                if ICUvars["ANNOUNCE"] ~= "AUTO" then
+                    SendChatMessage("ICU -> " .. this:GetText() .. ".", ICUvars["ANNOUNCE"]);
                 else
                     if GetNumRaidMembers() > 0 then
                         SendChatMessage("ICU -> " .. this:GetText() .. ".", "RAID");
                     elseif GetNumPartyMembers() > 0 then
                         SendChatMessage("ICU -> " .. this:GetText() .. ".", "PARTY");
                     else
-                        print("ICU ->  " .. this:GetText() .. ".");
+                        ICU_Print("ICU ->  " .. this:GetText() .. ".");
                     end
                 end
-            elseif ICUvars.announce == "SELF" then
-                print("ICU ->  " .. this:GetText() .. ".");
+            elseif ICUvars["ANNOUNCE"] == "SELF" then
+                ICU_Print("ICU ->  " .. this:GetText() .. ".");
             end
         else
-            print("ICU ->  " .. this:GetText() .. ".");
+            ICU_Print("ICU ->  " .. this:GetText() .. ".");
         end
 
         ERR_UNIT_NOT_FOUND = lOriginal_ERR_UNIT_NOT_FOUND;
@@ -352,18 +344,18 @@ function ICU2_Process_Trg(trg)
 				else
 					message = message .. " (UNFLAGGED)";
 				end
-                if ICUvars2["ALERT"] == "AUTO" then
+                if ICUvars["ALERT"] == "AUTO" then
                     if GetNumRaidMembers() > 0 then
                         SendChatMessage(message, "RAID");
                     elseif GetNumPartyMembers() > 0 then
                         SendChatMessage(message, "PARTY");
                     else
-                        print(message);
+                        ICU_Print(message);
                     end
-                elseif ICUvars2["ALERT"] == "SELF" then
-                    print(message);
-                elseif ICUvars2["ALERT"] ~= "OFF" and not ((ICUvars2["ALERT"] == "PARTY" and GetNumPartyMembers() == 0) or (ICUvars2["ALERT"] == "RAID" and GetNumRaidMembers() == 0)) then
-                    SendChatMessage(message, ICUvars2["ALERT"]);
+                elseif ICUvars["ALERT"] == "SELF" then
+                    ICU_Print(message);
+                elseif ICUvars["ALERT"] ~= "OFF" and not ((ICUvars["ALERT"] == "PARTY" and GetNumPartyMembers() == 0) or (ICUvars["ALERT"] == "RAID" and GetNumRaidMembers() == 0)) then
+                    SendChatMessage(message, ICUvars["ALERT"]);
                 end
             end
             -- TODO: END --
@@ -429,7 +421,7 @@ function ICU_Clear_Popup()
 end
 
 function ICU_MouseOverUpdate()
-    if ICUvars.mouseOver and IsControlKeyDown() and MouseIsOver(MinimapCluster) and GetMouseFocus():GetName() == "Minimap" then
+    if ICUvars["mouseOver"] and IsControlKeyDown() and MouseIsOver(MinimapCluster) and GetMouseFocus():GetName() == "Minimap" then
         if GameTooltip:IsVisible() then
             if GameTooltipTextLeft1:GetText() ~= icu_prevtooltip then
                 ICU_Clear_Popup();
