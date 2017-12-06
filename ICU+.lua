@@ -35,38 +35,17 @@ local icu_prevtooltip = nil;
 ------------------------------------------------------------------------------
 
 function ICU_Print(msg)
-	DEFAULT_CHAT_FRAME:AddMessage(msg, 1, 1, 1);
-end
-
-function ICU_ParseCommand(str) -- ToDO: Do NOT let this function see the light of day
-	local str = string.upper(str);
-    local len = string.len(str);
-
-	local cmd = "";
-	local opt = "";
-
-    local i = 1;
-    while i < len + 1 and string.sub(str, i, i) ~= " " do
-        cmd = cmd .. string.sub(str, i, i);
-        i = i + 1;
-    end
-    while i < len + 1 and string.sub(str, i, i) == " " do
-        i = i + 1;
-    end
-    while i < len + 1 and string.sub(str, i, i) ~= " " do
-        opt = opt .. string.sub(str, i, i);
-        i = i + 1;
-    end
-
-    return cmd, opt;
+    DEFAULT_CHAT_FRAME:AddMessage(msg, 1, 1, 1);
 end
 
 function ICU_StringifyKeys(tab)
-	local str = "";
-	for key, _ in pairs(tab) do
-		str = str .. key .. ", ";
-	end
-	return string.sub(str, 1, -3);
+    local str = "";
+
+    for key, _ in pairs(tab) do
+        str = str .. key .. ", ";
+    end
+
+    return string.sub(str, 1, -3);
 end
 
 function ICU_TableHasValue(tab, val)
@@ -75,6 +54,7 @@ function ICU_TableHasValue(tab, val)
             return true;
         end
     end
+
     return false;
 end
 
@@ -97,36 +77,33 @@ function ICU_OnLoad()
     end
     
     SLASH_ICU1 = "/icu";
-	SLASH_ICU2 = "/icu+";
-	SLASH_ICU3 = "/icui";
-	SLASH_ICU3 = "/icup";
+    SLASH_ICU2 = "/icu+";
+    SLASH_ICU3 = "/icui";
+    SLASH_ICU3 = "/icup";
 end
 
 function ICU_Slash(str)
-	--local cmd, opt = ICU_ParseCommand(str);
     local _, _, cmd, opt = string.find(string.upper(str), "(%w*)%s*(%w*)");
-	if cmd == "" or cmd == nil then
-		ICU_Print("ICU 1.3 - Shanktank's Version. Commands: " .. string.lower(ICU_StringifyKeys(ICU_OPTIONS)));
+    if cmd == "" or cmd == nil then
+        ICU_Print("ICU 1.3 - Shanktank's Version. Commands: " .. string.lower(ICU_StringifyKeys(ICU_OPTIONS)));
     elseif ICU_OPTIONS[cmd] == nil then
-		ICU_Print("Invalid command. Commands: " .. string.lower(ICU_StringifyKeys(ICU_OPTIONS)));
-	elseif opt == "" or opt == nil then
-		ICU_Print(cmd .. " is currently set to " .. ICUvars[cmd] .. ".\n" .. ICU_DESCRIPTIONS[cmd] .. ".\nValid " .. cmd .. " values are: " .. table.concat(ICU_OPTIONS[cmd], ", "));
-	else
-        if ICU_TableHasValue(ICU_OPTIONS[cmd], opt) then
-			ICUvars[cmd] = opt;
-			ICU_Print(cmd .. " has been set to " .. ICUvars[cmd] .. ".");
-			if cmd == "ANCHOR" then
-				ICU_SetPoints();
-			end
-		else
-			ICU_Print("Invalid " .. cmd .. " value. Valid values: " .. table.concat(ICU_OPTIONS[cmd], ", "));
-		end
-	end
+        ICU_Print("Invalid command. Commands: " .. string.lower(ICU_StringifyKeys(ICU_OPTIONS)));
+    elseif opt == "" or opt == nil then
+        ICU_Print(cmd .. " is currently set to " .. ICUvars[cmd] .. ".\n" .. ICU_DESCRIPTIONS[cmd] .. ".\nValid " .. cmd .. " values are: " .. table.concat(ICU_OPTIONS[cmd], ", "));
+    elseif ICU_TableHasValue(ICU_OPTIONS[cmd], opt) then
+        ICUvars[cmd] = opt;
+        ICU_Print(cmd .. " has been set to " .. ICUvars[cmd] .. ".");
+        if cmd == "ANCHOR" then
+            ICU_SetPoints();
+        end
+    else
+        ICU_Print("Invalid " .. cmd .. " value. Valid values: " .. table.concat(ICU_OPTIONS[cmd], ", "));
+    end
 end
 
 function ICU_OnEvent(event)
     if event == "VARIABLES_LOADED" then
-		if not ICUvars then
+        if not ICUvars then
             ICUvars = { };
             ICUvars["ALERT"]    = "AUTO";
             ICUvars["ANNOUNCE"] = "AUTO";
@@ -336,11 +313,11 @@ function ICU2_Process_Trg(trg)
             if myFaction ~= theirFaction and not UnitOnTaxi("target") then
                 Minimap:PingLocation(ICU_PING_X, ICU_PING_Y);
                 message = UnitPVPName("target") .. ": " .. UnitLevel("target") .. " " .. UnitRace("target") .. " " .. UnitClass("target");
-				if UnitIsPVP("target") then
-					message = message .. " (FLAGGED)";
-				else
-					message = message .. " (UNFLAGGED)";
-				end
+                if UnitIsPVP("target") then
+                    message = message .. " (FLAGGED)";
+                else
+                    message = message .. " (UNFLAGGED)";
+                end
                 if ICUvars["ALERT"] == "AUTO" then
                     if GetNumRaidMembers() > 0 then
                         SendChatMessage(message, "RAID");
