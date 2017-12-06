@@ -70,7 +70,7 @@ function ICU_StringifyKeys(tab)
 end
 
 function ICU_TableHasValue(tab, val)
-    for _, v in ipairs(tab) do -- ToDO: pairs instead of ipairs?
+    for _, v in ipairs(tab) do
         if val == v then
             return true;
         end
@@ -103,22 +103,23 @@ function ICU_OnLoad()
 end
 
 function ICU_Slash(str)
-	local cmd, opt = ICU_ParseCommand(str);
-	if cmd == "" then
-		ICU_Print("ICU 1.3: Shanktank's Version. Commands: " .. string.lower(ICU_StringifyKeys(ICU_OPTIONS)));
+	--local cmd, opt = ICU_ParseCommand(str);
+    local _, _, cmd, opt = string.find(string.upper(str), "(%w*)%s*(%w*)");
+	if cmd == "" or cmd == nil then
+		ICU_Print("ICU 1.3 - Shanktank's Version. Commands: " .. string.lower(ICU_StringifyKeys(ICU_OPTIONS)));
     elseif ICU_OPTIONS[cmd] == nil then
-		ICU_Print("ICU: Invalid command. Commands: " .. string.lower(ICU_StringifyKeys(ICU_OPTIONS)));
-	elseif opt == "" then
-		ICU_Print("ICU: "  .. cmd .. " is currently set to " .. ICUvars[cmd] .. ". " .. ICU_DESCRIPTIONS[cmd] .. ". Valid values are " .. table.concat(ICU_OPTIONS[cmd], ", ") .. "."); -- ToDO: cache/precalc concat or always do on the fly?
+		ICU_Print("Invalid command. Commands: " .. string.lower(ICU_StringifyKeys(ICU_OPTIONS)));
+	elseif opt == "" or opt == nil then
+		ICU_Print(cmd .. " is currently set to " .. ICUvars[cmd] .. ".\n" .. ICU_DESCRIPTIONS[cmd] .. ".\nValid " .. cmd .. " values are: " .. table.concat(ICU_OPTIONS[cmd], ", "));
 	else
         if ICU_TableHasValue(ICU_OPTIONS[cmd], opt) then
 			ICUvars[cmd] = opt;
-			ICU_Print("ICU: " .. cmd .. " has been set to " .. ICUvars[cmd] .. ".");
+			ICU_Print(cmd .. " has been set to " .. ICUvars[cmd] .. ".");
 			if cmd == "ANCHOR" then
 				ICU_SetPoints();
 			end
 		else
-			ICU_Print("ICU: Invalid " .. cmd .. " value. Valid " .. cmd .. " values are: " .. table.concat(ICU_OPTIONS[cmd], ", ") .. ".");
+			ICU_Print("Invalid " .. cmd .. " value. Valid values: " .. table.concat(ICU_OPTIONS[cmd], ", "));
 		end
 	end
 end
@@ -329,17 +330,13 @@ function ICU2_Process_Trg(trg)
         result_strn = trg .. " " .. UnitLevel( "target" );
         
         if UnitIsPlayer("target") then
-            -- TODO: BEGIN -- NOTE: UnitIsPVP(), UnitPVPName()
             myFaction, _ = UnitFactionGroup("player");
             theirFaction, _ = UnitFactionGroup("target");
 
             if myFaction ~= theirFaction and not UnitOnTaxi("target") then
                 Minimap:PingLocation(ICU_PING_X, ICU_PING_Y);
-
-				local flagged = UnitIsPVP("target");
-
                 message = UnitPVPName("target") .. ": " .. UnitLevel("target") .. " " .. UnitRace("target") .. " " .. UnitClass("target");
-				if flagged then
+				if UnitIsPVP("target") then
 					message = message .. " (FLAGGED)";
 				else
 					message = message .. " (UNFLAGGED)";
@@ -358,7 +355,6 @@ function ICU2_Process_Trg(trg)
                     SendChatMessage(message, ICUvars["ALERT"]);
                 end
             end
-            -- TODO: END --
 
             result_strn = result_strn .. " " .. UnitRace("target") .. " " .. UnitClass("target");
             rank = UnitPVPRank("target");
