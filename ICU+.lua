@@ -1,4 +1,4 @@
-ICU_VERSION = "1.3 - Shanktank's Version";
+ICU_VERSION = "ICU 1.4 - Shanktank's Version";
 
 ICU_MAX_LINES = 10;
 
@@ -30,9 +30,9 @@ ICU_PING_Y = 0;
 
 local icu_prevtooltip = nil;
 
-------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 -- Auxiliary functions
-------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 function ICU_Print(msg)
     DEFAULT_CHAT_FRAME:AddMessage(msg, 1, 1, 1);
@@ -58,9 +58,9 @@ function ICU_TableHasValue(tab, val)
     return false;
 end
 
-------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 -- OnFoo() functions
-------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 function ICU_OnLoad()
     this:RegisterEvent("VARIABLES_LOADED");
@@ -85,7 +85,7 @@ end
 function ICU_Slash(str)
     local _, _, cmd, opt = string.find(string.upper(str), "(%w*)%s*(%w*)");
     if cmd == "" or cmd == nil then
-        ICU_Print("ICU 1.3 - Shanktank's Version. Commands: " .. string.lower(ICU_StringifyKeys(ICU_OPTIONS)));
+        ICU_Print(ICU_VERSION .. ". Commands: " .. string.lower(ICU_StringifyKeys(ICU_OPTIONS)));
     elseif ICU_OPTIONS[cmd] == nil then
         ICU_Print("Invalid command. Commands: " .. string.lower(ICU_StringifyKeys(ICU_OPTIONS)));
     elseif opt == "" or opt == nil then
@@ -180,9 +180,9 @@ function ICU_ButtonClick()
     end
 end
 
-------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 -- OnFoo() hooked function
-------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 function ICU_Minimap_OnClick_Event()
     if IsShiftKeyDown() then
@@ -205,9 +205,9 @@ function ICU_Minimap_OnClick_Event()
     end
 end
 
-------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 -- Internal functions
-------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 function ICU_Process_Tooltip(tooltip, silent)
     local pos = 0;

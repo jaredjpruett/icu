@@ -1,5 +1,5 @@
-How to use
-----------
+How To Use
+--------------------------------------------------------------------------------
 
 Click on the tracked blip(s) in minimap to display a selectable popup menu
 containing indepth details of the blip(s). Enemy faction players will be
@@ -16,7 +16,7 @@ Shift-click on the minimap to generate a normal ping.
 
 
 Version History
----------------
+--------------------------------------------------------------------------------
 
 Version 1.4 (05 Dec 2017)
 - Cleaned up modifications and refactored some existing code.
@@ -43,7 +43,8 @@ Version 1.0 (26 Jan 2005)
 
 
 Known Issues
-------------
+--------------------------------------------------------------------------------
+
 This Addon works great as a targetting mechanism in PvP but very poorly in PvE.
 A word of warning: refrain from clicking on a bunch of mob blips on the minimap 
 while in combat. One to three mob blips should be fine. Otherwise, you may just
