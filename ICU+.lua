@@ -398,7 +398,7 @@ function ICU_MouseOverUpdate()
         if GameTooltip:IsVisible() then
             if GameTooltipTextLeft1:GetText() ~= icu_prevtooltip then
                 ICU_Clear_Popup();
-                icu_prevtooltip = GameTooltipTextLeft1:GetText()
+                icu_prevtooltip = GameTooltipTextLeft1:GetText();
                 ICU_Minimap_OnClick_Event();
             end 
         end
